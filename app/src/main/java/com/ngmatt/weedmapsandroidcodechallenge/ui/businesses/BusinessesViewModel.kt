@@ -8,9 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.ngmatt.weedmapsandroidcodechallenge.BuildConfig
 import com.ngmatt.weedmapsandroidcodechallenge.data.Business
 import com.ngmatt.weedmapsandroidcodechallenge.data.YelpApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.lang.Exception
 
 class BusinessesViewModel : ViewModel() {
@@ -22,6 +20,8 @@ class BusinessesViewModel : ViewModel() {
     private var _searchTerm = MutableLiveData("food")
     val searchTerm: LiveData<String>
         get() = _searchTerm
+
+    private var searchJob: Job? = null
 
     private var _errorMessage = MutableLiveData<String>()
     val errorMessage: LiveData<String>
@@ -52,9 +52,11 @@ class BusinessesViewModel : ViewModel() {
     }
 
     fun getBusinesses(searchTerm: String) {
+        searchJob?.cancel()
         setProgressBar()
         this._searchTerm.value = searchTerm
-        viewModelScope.launch {
+        searchJob = viewModelScope.launch {
+            delay(500)
             try {
                 val listResult = YelpApi.retrofitService
                     .searchBusinesses("Bearer ${BuildConfig.API_KEY}", searchTerm, "irvine")
@@ -72,9 +74,10 @@ class BusinessesViewModel : ViewModel() {
 
                         _businesses.value = listResult.subList(0, 3)
                         onSearchSuccessful()
-
                         for (i in 3 until listResult.size) {
+                            delay(200)
                             getSortedReviews(listResult, i)
+                            if (listResult[i].reviews.isEmpty()) continue
                             _businesses.value = listResult.subList(0, i + 1)
                         }
                     } else {

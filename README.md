@@ -4,7 +4,7 @@ This is my solution to the take-home challenge.
 
 ### Demo
 
-<img src='./wmc.gif' width='250'/>
+<img src='./wmc1.gif' width='250'/>
 
 ### Objectives
 
